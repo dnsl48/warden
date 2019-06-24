@@ -1,0 +1,11 @@
+version: 0.1
+...
+identity:
+  uid: '000000'
+  name: 'warden-init'
+structure:
+  source: 'sql'
+  target: 'migration.sql'
+seal:
+  file: 'seal.yml'
+  algo: 'blake2b'

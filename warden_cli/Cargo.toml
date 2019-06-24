@@ -1,0 +1,46 @@
+[package]
+name = "warden"
+version = "0.0.1"
+authors = ["Serge <dnsl48@gmail.com>"]
+edition = "2018"
+
+description = "Database migration manager"
+categories = ["command-line-utilities", "development-tools"]
+
+license = "MIT/Apache-2.0"
+
+# homepage = "https://gitlab.com/mateno/warden"
+# documentation = "https://gitlab.com/mateno/warden"
+# readme = "README.md"
+repository = "https://gitlab.com/mateno/warden"
+
+
+[dependencies]
+
+chrono = "0.4.6"
+digest = "0.8.0"
+dirs = "1.0.5"
+dotenv = "0.13"
+either = "1.5.2"
+env_logger = "0.6"
+exitfailure = "0.5"
+failure = "0.1.5"
+fraction = "0.6"
+generic-array = "0.13.0"
+log = { version = "0.4", features = ["max_level_trace", "release_max_level_info"] }
+path_abs = "0.4.1"
+rand = "0.6.5"
+sha3 = "0.8.2"
+structopt = "0.2"
+term_grid = "0.1.7"
+typenum = "1.10.0"
+walkdir = "2.2.7"
+
+warden_core = { version = "0.0.1", path = "../warden_core" }
+warden_postgres = { version = "0.0.1", path = "../warden_postgres", optional = true }
+
+yamlette = "0.0.8"
+
+[features]
+default = ["with-postgres"]
+with-postgres = ["warden_postgres"]

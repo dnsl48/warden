@@ -1,0 +1,29 @@
+[package]
+name = "warden_core"
+version = "0.0.1"
+authors = ["Serge <dnsl48@gmail.com>"]
+edition = "2018"
+
+description = "core of warden, database migration manager"
+license = "MIT/Apache-2.0"
+repository = "https://gitlab.com/mateno/warden"
+
+[dependencies]
+
+blake2 = "0.8.0"
+chrono = "0.4.6"
+dirs = "1.0.5"
+either = "1.5.2"
+env_logger = "0.6"
+failure = "0.1"
+lazy_static = "1.3.0"
+libflate = "0.1"
+log = { version = "0.4", features = ["max_level_trace", "release_max_level_info"] }
+path_abs = "0.4.1"
+sha3 = "0.8.2"
+tar = "0.4.24"
+uuid = { version = "0.7.4", features = ["v5"] }
+walkdir = "2.2.7"
+
+fraction = "0.6"
+yamlette = "0.0.8"

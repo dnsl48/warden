@@ -1,0 +1,6 @@
+version: 0.1
+...
+timestamp: !!timestamp 2019-06-23T20:21:38.499+00:00
+seal:
+  algo: 'blake2b'
+  sign: !!binary 9xpvoWF4y42IllHTOZQEWNXaQFXwkku5RGwT5fVnDD8C4tr0D6Xo0JEOtBV7x6GU/Sj2vP9tayjuwIPmvsFYBA==

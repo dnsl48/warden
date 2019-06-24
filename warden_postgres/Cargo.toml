@@ -1,0 +1,26 @@
+[package]
+name = "warden_postgres"
+version = "0.0.1"
+authors = ["Serge <dnsl48@gmail.com>"]
+edition = "2018"
+build = "build.rs"
+
+description = "PostgreSQL support for warden, database migration manager"
+license = "MIT/Apache-2.0"
+repository = "https://gitlab.com/mateno/warden"
+
+[build-dependencies]
+exitfailure = "0.5"
+libflate = "0.1"
+path_abs = "0.4.1"
+tar = "0.4.24"
+
+[dependencies]
+chrono = "0.4.6"
+failure = "0.1"
+libflate = "0.1"
+log = { version = "0.4", features = ["max_level_trace", "release_max_level_info"] }
+path_abs = "0.4.1"
+postgres = { version = "0.15", features = ["with-chrono"] }
+tar = "0.4.24"
+warden_core = { version = "0.0.1", path = "../warden_core" }

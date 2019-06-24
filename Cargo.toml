@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+  "warden_cli",
+  "warden_core",
+  "warden_postgres"
+]
