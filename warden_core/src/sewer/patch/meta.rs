@@ -58,18 +58,37 @@ impl Meta {
                 .parent_dir()
                 .ok_or_else(|| failure::err_msg("A file without parent..."))?,
         )?;
-        let source_base = source_base.absolute()?;
+        let source_base_abs = source_base.absolute()?;
 
         for req in raw_meta.get_requirements() {
             let req_path = path::from_str(req)?;
 
             let (base, req_path) = if req_path.has_root() {
-                (&source_base, &req[1..])
+                (&source_base_abs, &req[1..])
             } else {
                 (&patch_base, &req[..])
             };
 
-            let requirement = PathFile::new(path::normalise(&base.join(req_path))?)?;
+            let req_path = path::normalise(&base.join(req_path))?;
+
+            log::debug!(
+                "Reading patch requirement: {}",
+                path::printable_rel_to_base(&source_base, &req_path)
+            );
+
+            // let requirement = PathFile::new(req_path)?;
+            let requirement = match PathFile::new(&req_path) {
+                Ok(req) => req,
+                error @ Err(_) => {
+                    log::error!(
+                        "\"{what}\" requires \"{req}\", but we could not find it",
+                        what = raw_meta.get_path(),
+                        req = path::printable_rel_to_base(&source_base, &req_path),
+                    );
+
+                    error?
+                }
+            };
 
             let uuid = path::to_uuid(requirement.as_path());
 

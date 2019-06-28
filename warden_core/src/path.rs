@@ -1,10 +1,22 @@
 use dirs;
 use failure::{self, Error};
-use path_abs::{PathArc, PathAbs, PathDir};
-use std::iter::FromIterator;
+use path_abs::{PathAbs, PathArc, PathDir};
 use std::ffi::OsStr;
+use std::iter::FromIterator;
 use std::path::{self, Path};
 use uuid::Uuid;
+
+pub fn printable(path: &PathArc) -> String {
+    normalise(path)
+        .and_then(|ref v| relpath(v))
+        .unwrap_or_else(|_| format!("{}", path.display()))
+}
+
+pub fn printable_rel_to_base(base: &PathDir, path: &PathArc) -> String {
+    normalise(path)
+        .map(|ref v| relpath_to_base(base, v))
+        .unwrap_or_else(|_| format!("{}", path.display()))
+}
 
 pub fn from_str(path: &str) -> Result<PathArc, Error> {
     let path = if let Some(at) = path.rfind('~') {
@@ -56,7 +68,7 @@ pub fn relpath_to_base(base: &PathDir, path: &PathArc) -> String {
             } else {
                 break;
             }
-        };
+        }
 
         matching
     };
@@ -71,51 +83,46 @@ pub fn relpath_to_base(base: &PathDir, path: &PathArc) -> String {
     let result = path::PathBuf::from_iter(
         base_compos
             .map(|_| path::Component::ParentDir)
-            .chain(path_compos)
+            .chain(path_compos),
     );
 
     format!("{}", result.as_path().display())
 }
 
-
 pub fn to_uuid(source: &Path) -> Uuid {
-    Uuid::new_v5(&Uuid::NAMESPACE_OID, &format!("{:?}", source).as_bytes()[..])
+    Uuid::new_v5(
+        &Uuid::NAMESPACE_OID,
+        &format!("{}", source.display()).as_bytes()[..],
+    )
 }
-
 
 pub fn folder_name(dir: &PathDir) -> Result<&str, Error> {
     match dir.file_name() {
-        None => Err(failure::err_msg(format!("Path does not have folder name: {}", dir.as_path().to_string_lossy()))),
-        Some(name) => {
-            match name.to_str() {
-                None => Err(failure::err_msg(format!("Could not read the folder name: {}", name.to_string_lossy()))),
-                Some(name) => Ok(name)
-            }
-        }
+        None => Err(failure::err_msg(format!(
+            "Path does not have folder name: {}",
+            dir.as_path().to_string_lossy()
+        ))),
+        Some(name) => match name.to_str() {
+            None => Err(failure::err_msg(format!(
+                "Could not read the folder name: {}",
+                name.to_string_lossy()
+            ))),
+            Some(name) => Ok(name),
+        },
     }
 }
 
-
 pub fn os_string(os_str: &OsStr) -> Result<String, Error> {
-    os_str.to_os_string().into_string()
-    .or_else(|string| Err(
-        failure::err_msg(
-            format!(
-                "Could not convert \"{:?}\" into string",
-                string
-            )
-        )
-    ))
+    os_str.to_os_string().into_string().or_else(|string| {
+        Err(failure::err_msg(format!(
+            "Could not convert \"{:?}\" into string",
+            string
+        )))
+    })
 }
 
 pub fn os_str(os_str: &OsStr) -> Result<&str, Error> {
-    os_str.to_str()
-    .ok_or_else(||
-        failure::err_msg(
-            format!(
-                "Could not convert \"{:?}\" into string",
-                os_str
-            )
-        )
-    )
+    os_str
+        .to_str()
+        .ok_or_else(|| failure::err_msg(format!("Could not convert \"{:?}\" into string", os_str)))
 }

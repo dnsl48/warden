@@ -6,18 +6,21 @@ use std::time::{SystemTime, UNIX_EPOCH};
 #[derive(Clone, Debug)]
 pub struct Identity {
     uid: String,
-    name: String
+    name: String,
 }
 
 impl Identity {
     pub fn new(name: String) -> Self {
-        Identity { uid: Self::generate_uid(), name: name }
+        Identity {
+            uid: Self::generate_uid(),
+            name: name,
+        }
     }
 
     pub fn build(uid: String, name: String) -> Self {
         Identity {
             uid: uid,
-            name: name
+            name: name,
         }
     }
 
@@ -44,12 +47,13 @@ impl Identity {
     }
 
     fn generate_uid() -> String {
-        let ts = SystemTime::now().duration_since(UNIX_EPOCH).expect("Time went backwards");
-        let sec = ts.as_secs() - 49 * 365 * 24 * 3600;
+        let ts = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("Time went backwards");
+        let sec = ts.as_secs() - 49 * 365 * 24 * 3600 - 3600 * 24 * 187;
         format!("{:0>6}", base36::encode(sec as u128))
     }
 }
-
 
 impl fmt::Display for Identity {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

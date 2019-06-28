@@ -47,16 +47,13 @@ impl Meta {
     }
 
     pub fn get_source_base(&self) -> PathDir {
-        self.source
-            .map(
-                |file| {
-                    Ok(file
-                        .parent_dir()
-                        .expect("every file must have a parent folder"))
-                },
-                |dir| Ok(dir.clone()),
-            )
-            .unwrap()
+        self.source.map(
+            |file| {
+                file.parent_dir()
+                    .expect("every file must have a parent folder")
+            },
+            |dir| dir.clone(),
+        )
     }
 
     pub fn get_base(&self) -> PathDir {

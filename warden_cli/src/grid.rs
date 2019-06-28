@@ -1,6 +1,6 @@
+use generic_array::{ArrayLength, GenericArray};
+// use std::ops::Deref;
 use typenum::{Unsigned, U1, U2, U3, U4, U5, U6};
-use generic_array::{GenericArray, ArrayLength};
-
 
 pub type Grid1 = Grid<U1>;
 pub type Grid2 = Grid<U2>;
@@ -9,10 +9,9 @@ pub type Grid4 = Grid<U4>;
 pub type Grid5 = Grid<U5>;
 pub type Grid6 = Grid<U6>;
 
-
 pub struct Grid<U: Unsigned> {
     grid: term_grid::Grid,
-    _width: std::marker::PhantomData<U>
+    _width: std::marker::PhantomData<U>,
 }
 
 impl<U: Unsigned> Default for Grid<U> {
@@ -20,7 +19,7 @@ impl<U: Unsigned> Default for Grid<U> {
         Grid::new(term_grid::GridOptions {
             filling: term_grid::Filling::Spaces(1),
             // filling: term_grid::Filling::Text(String::from(" | ")),
-            direction: term_grid::Direction::LeftToRight
+            direction: term_grid::Direction::LeftToRight,
         })
     }
 }
@@ -29,7 +28,7 @@ impl<U: Unsigned> Grid<U> {
     pub fn new(options: term_grid::GridOptions) -> Self {
         Grid {
             grid: term_grid::Grid::new(options),
-            _width: std::marker::PhantomData
+            _width: std::marker::PhantomData,
         }
     }
 
@@ -39,14 +38,14 @@ impl<U: Unsigned> Grid<U> {
         }
     }
 
-    pub fn row<R, T>(&mut self, row: R)
+    pub fn row<'a, 'b, R, T>(&'a mut self, row: R)
     where
         U: ArrayLength<T>,
         GenericArray<T, U>: From<R>,
-        term_grid::Cell: From<T>
+        T: std::fmt::Display,
     {
         for s in GenericArray::from(row) {
-            self.grid.add(term_grid::Cell::from(s))
+            self.grid.add(term_grid::Cell::from(format!("{}", s)))
         }
     }
 

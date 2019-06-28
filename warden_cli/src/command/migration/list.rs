@@ -1,65 +1,103 @@
 use crate::args::Args;
-use crate::grid::{Grid, Grid3};
+use crate::grid::{Grid, Grid2};
+use crate::migration;
 use crate::MainResult;
-use path_abs::PathFile;
-use warden_core::migration::{self, identity::Identity, meta::Meta};
-use warden_core::path;
+use colored::*;
+use warden_core::config::Config;
+use warden_core::dbms::Connection;
 
 pub fn run(args: &Args) -> MainResult {
     let config = args.get_config()?;
 
-    let mut grid: Grid3 = Grid::default();
+    let mut grid: Grid2 = Grid::default();
 
-    migration::fs::foreach_migration_sorted::<_, ()>(&config.migrations, |dir| {
-        log::trace!("Checking folder: {:?}", dir);
+    migrations(&mut grid, &config, None)?;
 
-        let id = if let Some(id) = Identity::from_str(dir.file_name().to_str()?) {
-            id
-        } else {
-            log::trace!("Could not parse Identity. Skip...");
-            return None;
-        };
+    grid.row(["", ""]);
 
-        let meta = if let Ok(file) =
-            PathFile::new(config.migrations.join(format!("{}", &id)).join("meta.yml"))
-        {
-            file
-        } else {
-            log::trace!("Could not FIND meta.yml. Skip...");
-            return None;
-        };
+    print!("{}", grid.display());
 
-        let meta = match Meta::open(meta) {
-            Ok(meta) => meta,
-            Err(error) => {
-                let meta_file =
-                    PathFile::new(config.migrations.join(format!("{}", &id)).join("meta.yml"))
-                        .unwrap();
-                log::warn!(
-                    "Reading {} error: {}",
-                    path::relpath(&meta_file).unwrap_or_else(|_| format!("{:?}", meta_file)),
-                    error
-                );
-                log::trace!("Could not READ meta.yml. Skip...");
+    Ok(())
+}
 
-                return None;
-            }
-        };
+pub fn migrations(grid: &mut Grid2, config: &Config, conn: Option<&Box<Connection>>) -> MainResult {
+    let migrations = migration::read_migrations(config);
 
-        let sealed = PathFile::new(meta.get_seal_meta().get_file()).is_ok();
-        let deployed = false;
-
-        grid.row([
-            format!("{}", if sealed { "" } else { "*" }),
-            format!("{}", id),
-            format!("[{}]", if deployed { "x" } else { " " }),
-        ]);
-
+    let last_deployed = if let Some(ref conn) = conn {
+        conn.get_last_deployed_migration()?
+    } else {
         None
-    });
+    };
 
-    println!("");
-    println!("{}", grid.display());
+    grid.row(["", ""]);
+    grid.row(["Migrations:".color("cyan").bold(), "".color("white")]);
+    grid.row(["", ""]);
+
+    for m in migrations {
+        let is_deployed: Option<bool> = if conn.is_some() {
+            Some(if let Some(last_deployed) = last_deployed {
+                if let Some(id) = m.get_id().get_id() {
+                    last_deployed >= id
+                } else {
+                    false
+                }
+            } else {
+                false
+            })
+        } else {
+            None
+        };
+
+        let seal = format!(
+            "{}",
+            if m.is_sealed() {
+                "  ".color("")
+            } else {
+                "* ".color("green")
+            }
+        );
+
+        let name = format!("{}", m.get_id()).color(if !m.is_sealed() {
+            if conn.is_some() {
+                "red"
+            } else {
+                "green"
+            }
+        } else if let Some(deployed) = is_deployed {
+            if deployed {
+                "blue"
+            } else {
+                "green"
+            }
+        } else {
+            if conn.is_some() {
+                "white"
+            } else {
+                "blue"
+            }
+        });
+
+        let status = format!(
+            "{}",
+            if !m.is_sealed() {
+                if conn.is_some() {
+                    "[ ]".color("white")
+                } else {
+                    "".color("white")
+                }
+            } else if let Some(deployed) = is_deployed {
+                if deployed {
+                    "[+]".color("blue")
+                } else {
+                    "[ ]".color("green")
+                }
+            } else {
+                "".color("white")
+            }
+        );
+
+        grid.row([format!(" {}{}", seal, name), format!("{}", status)]);
+    }
 
     Ok(())
 }

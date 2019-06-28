@@ -113,14 +113,17 @@ fn parse_meta(
         { schema: schema }
     );
 
-    let version = if let Some(version) = version {
-        version
+    let (version, doc) = if let Some(version) = version {
+        (version, String::from(content))
     } else {
-        migration_meta.get_yaml_format_version().clone()
+        (
+            migration_meta.get_yaml_format_version().clone(),
+            format!("---\n...\n{}", content),
+        )
     };
 
     if version == Fraction::new(1u8, 10u8) {
-        let (requirements, add_weight) = parse_meta_v_0_1(content)?;
+        let (requirements, add_weight) = parse_meta_v_0_1(doc)?;
         Ok(RawMeta {
             path,
             requirements,
@@ -130,23 +133,15 @@ fn parse_meta(
         log::error!("Unsupported config version {:.8}", version);
         Err(failure::err_msg("Unsupported version"))?
     }
-
-    // if let Some(version) = version {
-    //
-    // } else {
-    //
-    //     log::error!("Config version is not defined");
-    //     Err(failure::err_msg("Unsupported version"))?
-    // }
 }
 
-fn parse_meta_v_0_1(content: &str) -> Result<(Vec<String>, BigFraction), Error> {
+fn parse_meta_v_0_1(content: String) -> Result<(Vec<String>, BigFraction), Error> {
     let schema = Yamlette::new();
 
     yamlette!(
         read ;
-        String::from(content) ;
-        [[{
+        content ;
+        [[], [{
             "require" => (req:String),
             "require" => (list reqs:Vec<String>),
             "weight" => (weight: BigFraction)

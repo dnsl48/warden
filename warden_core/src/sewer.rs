@@ -179,6 +179,7 @@ impl Sewer {
 
     /// 1. for each patch and add its parent package as a dependency
     fn raw_map_update(source_base: &PathDir, mut map: RawMap) -> Result<RawMap, Error> {
+        log::trace!("Sewer::raw_map_update | Add implicit dependencies for the raw map");
         let patches = map.get_patches_mut();
 
         for (_, (ref patch, ref mut meta)) in patches.iter_mut() {
@@ -196,6 +197,7 @@ impl Sewer {
             }
         }
 
+        log::trace!("Sewer::raw_map_update | Implicit dependencies added");
         Ok(map)
     }
 }

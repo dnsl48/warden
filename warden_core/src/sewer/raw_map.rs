@@ -80,7 +80,7 @@ impl RawMap {
             map.patch_up(Self::build_patch(migration_meta, &dir, &file)?);
         }
 
-        // println!("{:#?}", map);
+        log::trace!("The map is built");
 
         Ok(map)
     }
